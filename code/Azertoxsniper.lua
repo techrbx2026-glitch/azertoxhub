@@ -35,8 +35,11 @@ local settings = {
     triggers = { "the code is", "code is", "use code", "question is", "riddle is", "the riddle is", "riddle:", "use riddle" },
 }
 
-local CONFIG_FILE = "azertox_sniper.json"
-local LEGACY_CONFIG_FILE = "skibidi_redeemer.json"
+-- Keys and preferences are scoped to the Roblox account using the script.
+-- This prevents one user's API key being reused by another user on the same device.
+local USER_SCOPE = tostring(player.UserId)
+local CONFIG_FILE = "azertox_sniper_" .. USER_SCOPE .. ".json"
+local LEGACY_CONFIG_FILE = "skibidi_redeemer_" .. USER_SCOPE .. ".json"
 local PERSISTED = { armed = "boolean", autoSubmit = "boolean", autoEnter = "boolean", antiRagdoll = "boolean", riddleSolver = "boolean", retypeInvalid = "boolean", twoWordCheck = "boolean", submitAfter = "number", geminiKey = "string", aiProvider = "string", groqKey = "string", sharedVoter = "string",
     assistant = "boolean", assistantX = "number", assistantY = "number", assistantScale = "number",
     assistantPersonality = "string" }
@@ -250,6 +253,10 @@ local function new(class, props, kids)
         if k == "Parent" then parent = v else obj[k] = v end
     end
     for _, kid in ipairs(kids or {}) do kid.Parent = obj end
+    if class == "ScrollingFrame" then
+        pcall(function() obj.Active = true end)
+        pcall(function() obj.ScrollingEnabled = true end)
+    end
     if parent then obj.Parent = parent end
     return obj
 end
@@ -584,15 +591,16 @@ task.spawn(function()
     if ok and logo.Parent then logo.Image = image end
 end)
 
--- Small centered Christmas hat overlay for the avatar badge.
-box({ Name = "SantaHat", Position = UDim2.fromOffset(18, 5), Size = UDim2.fromOffset(28, 5),
-    BackgroundColor3 = C.Red, BorderSizePixel = 0, ZIndex = 5, Parent = logoDrag })
-box({ Name = "SantaHatCrown", Position = UDim2.fromOffset(23, 1), Size = UDim2.fromOffset(18, 8),
-    BackgroundColor3 = C.Red, BorderSizePixel = 0, Rotation = -18, ZIndex = 5, Parent = logoDrag })
-box({ Name = "SantaHatTrim", Position = UDim2.fromOffset(17, 8), Size = UDim2.fromOffset(30, 4),
-    BackgroundColor3 = C.Text, BorderSizePixel = 0, ZIndex = 6, Parent = logoDrag })
-box({ Name = "SantaHatPom", Position = UDim2.fromOffset(39, 0), Size = UDim2.fromOffset(7, 7),
-    BackgroundColor3 = C.Text, BorderSizePixel = 0, ZIndex = 6, Parent = logoDrag }, { corner(4) })
+-- Christmas hat above the profile image. It lives in its own layer so it stays
+-- visible and never steals clicks from the profile or navigation buttons.
+local santaHat = box({ Name = "SantaHat", Position = UDim2.fromOffset(8, -6),
+    Size = UDim2.fromOffset(56, 26), ZIndex = 20, Parent = rail })
+box({ Name = "SantaHatCrown", Position = UDim2.fromOffset(15, 3), Size = UDim2.fromOffset(28, 16),
+    BackgroundColor3 = C.Red, BorderSizePixel = 0, Rotation = -16, ZIndex = 21, Parent = santaHat }, { corner(7) })
+box({ Name = "SantaHatBand", Position = UDim2.fromOffset(9, 15), Size = UDim2.fromOffset(40, 6),
+    BackgroundColor3 = C.Text, BorderSizePixel = 0, ZIndex = 22, Parent = santaHat }, { corner(3) })
+box({ Name = "SantaHatPom", Position = UDim2.fromOffset(40, 0), Size = UDim2.fromOffset(10, 10),
+    BackgroundColor3 = C.Snow, BorderSizePixel = 0, ZIndex = 23, Parent = santaHat }, { corner(5), stroke(C.Gold) })
 
 local indicator = box({ Size = UDim2.fromOffset(2, 16), BackgroundColor3 = C.Text, ZIndex = 3, Parent = rail })
 
@@ -625,14 +633,16 @@ local subtitle = text({ Text = "❄  CHRISTMAS EDITION", FontFace = F.Mono, Text
 
 -- Lightweight holiday decoration kept behind the controls so it cannot steal input.
 local snowLayer = box({ Name = "ChristmasSnow", Position = UDim2.fromOffset(0, 0),
-    Size = UDim2.fromScale(1, 1), ZIndex = 2, ClipsDescendants = true, Parent = content })
+    Size = UDim2.fromScale(1, 1), ZIndex = 1, ClipsDescendants = true, Parent = content })
 local snowflakes = {}
 for i = 1, 18 do
-    local flake = text({ Text = (i % 3 == 0) and "✦" or "•", FontFace = F.Bold,
-        TextSize = (i % 3 == 0) and 10 or 8, TextColor3 = C.Snow,
-        TextTransparency = 0.25 + ((i * 13) % 45) / 100,
+    local size = (i % 3 == 0) and 4 or 3
+    local flake = box({
         Position = UDim2.fromOffset(8 + ((i * 37) % math.max(CW - 20, 1)), 58 + ((i * 53) % math.max(PAGE_H - 70, 1))),
-        Size = UDim2.fromOffset(14, 14), ZIndex = 2, Parent = snowLayer })
+        Size = UDim2.fromOffset(size, size), BackgroundColor3 = C.Snow,
+        BackgroundTransparency = 0.25 + ((i * 13) % 45) / 100,
+        ZIndex = 1, Parent = snowLayer,
+    }, { corner(size) })
     snowflakes[#snowflakes + 1] = { object = flake, speed = 5 + (i % 5), phase = i * 0.37 }
 end
 local snowTicker = function(dt, clock)
@@ -873,6 +883,8 @@ local sniperPage = page("Sniper")
 
 local sniperScroll = new("ScrollingFrame", {
     Size = UDim2.fromScale(1, 1),
+    Active = true,
+    ScrollingEnabled = true,
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 2,
@@ -909,6 +921,8 @@ local logFrame = box({ Position = UDim2.fromOffset(PX, 0), Size = UDim2.fromOffs
     BackgroundColor3 = C.Panel, Parent = logsPage }, { corner(4) })
 local console = new("ScrollingFrame", {
     Size = UDim2.fromScale(1, 1),
+    Active = true,
+    ScrollingEnabled = true,
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 2,
@@ -985,6 +999,8 @@ end)
 local settingsPage = page("Settings")
 local settingsScroll = new("ScrollingFrame", {
     Size = UDim2.fromScale(1, 1),
+    Active = true,
+    ScrollingEnabled = true,
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 2,
@@ -1733,6 +1749,7 @@ local function setConnectBtnState(connected)
 end
 
 local keyStatus = text({ Text = "", FontFace = F.Book, TextSize = 12, TextColor3 = C.Faint,
+    TextTruncate = Enum.TextTruncate.AtEnd,
     Position = UDim2.fromOffset(PX, 138), Size = UDim2.fromOffset(240, 16), Parent = riddlePage })
 local disconnectBtn = button({
     Text = "Disconnect", FontFace = F.Medium, TextSize = 12, TextColor3 = C.Faint,
@@ -1744,7 +1761,7 @@ on(disconnectBtn.MouseLeave, function() tween(disconnectBtn, 0.2, { TextColor3 =
 
 local function renderKeyStatus()
     if hasGeminiKey() then
-        keyStatus.Text = UI.AI.active().name .. " connected · " .. maskKey(UI.AI.key())
+        keyStatus.Text = "Local " .. UI.AI.active().name .. " · " .. maskKey(UI.AI.key()) .. " · " .. player.Name
         keyStatus.TextColor3 = C.Green
         disconnectBtn.Visible = true
     else
@@ -1912,6 +1929,8 @@ hoverColor(addBtn, C.Text, C.Sub)
 local triggerList = new("ScrollingFrame", {
     Position = UDim2.fromOffset(PX, INPUT_H + 8),
     Size = UDim2.fromOffset(CW - PX * 2, PAGE_H - INPUT_H - 8 - 20),
+    Active = true,
+    ScrollingEnabled = true,
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 2,
@@ -2419,6 +2438,7 @@ new("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new
 local bubbleScale = new("UIScale", { Parent = bubble })
 local historyFrame = new("ScrollingFrame", {
     LayoutOrder = 0, Size = UDim2.new(1, 0, 0, 110), BackgroundTransparency = 1, BorderSizePixel = 0,
+    Active = true, ScrollingEnabled = true,
     ScrollBarThickness = 2, ScrollBarImageColor3 = C.Faint, CanvasSize = UDim2.new(),
     AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y,
     Visible = false, ZIndex = 48, Parent = bubble,
@@ -4937,7 +4957,7 @@ local function riddleLoad(tbl)
         end
         local key = normQuestion(question)
         if type(answers) == "string" then answers = { answers } end
-        local list = {}
+        local list = RiddleStore.data[key] or {}
         for _, answer in ipairs(type(answers) == "table" and answers or {}) do
             answer = cleanCode(answer):upper()
             if answer ~= "" and not table.find(list, answer) then list[#list + 1] = answer end
@@ -4966,6 +4986,11 @@ end
 local function riddleLoadRemote()
     local manifest = riddleFetchJson(RIDDLE_MANIFEST_URL)
     if type(manifest) ~= "table" or type(manifest.shards) ~= "table" then return 0 end
+    -- Refresh an older local cache when the GitHub manifest grew. The old
+    -- version only fetched remotely when the cache was empty, so new shards
+    -- could never reach users who had already run the script once.
+    local expected = tonumber(manifest.totalRecords)
+    if expected and RiddleStore.size() >= expected then return 0 end
     local loaded = 0
     for _, item in ipairs(manifest.shards) do
         local name = type(item) == "table" and item.file or item
@@ -5011,15 +5036,24 @@ function RiddleStore.get(text)
             counts[candidate] = (counts[candidate] or 0) + 1
         end
     end
-    local best, score = nil, 1
+    local best, score = nil, -math.huge
     for candidate, common in pairs(counts) do
         local candidateCount = 0
         for token in candidate:gmatch("%w+") do
             if #token > 1 then candidateCount += 1 end
         end
-        -- Reject partial hits: composite riddles must reach the composer.
-        if common == tokenCount and candidateCount <= tokenCount + 2 and common > score then
-            best, score = candidate, common
+        -- Accept harmless filler around a known riddle, but require every
+        -- meaningful candidate token to be present. This handles messages
+        -- such as "can you tell me what ..." without accepting loose partials.
+        if candidateCount >= 2 and common == candidateCount then
+            local extra = math.max(0, tokenCount - candidateCount)
+            local candidateScore = candidateCount * 10 - extra
+            if common == tokenCount and candidateCount <= tokenCount + 2 then
+                candidateScore += 20
+            end
+            if candidateScore > score then
+                best, score = candidate, candidateScore
+            end
         end
     end
     return best and RiddleStore.data[best] or nil
@@ -5081,7 +5115,7 @@ local function saveRiddleStore()
 end
 
 RiddleStore.reload()
-if RiddleStore.size() == 0 then
+do
     local remoteShardCount = riddleLoadRemote()
     if remoteShardCount > 0 then
         RiddleStore.dirty = true
@@ -7140,9 +7174,22 @@ local function once(key)
 end
 
 local function extractDirectCode(text)
-    local token = tostring(text or ""):match("[Tt]he%s+code%s+is%s+([%w%p]+)")
-        or tostring(text or ""):match("[Cc]ode%s+is%s+([%w%p]+)")
-        or tostring(text or ""):match("[Uu]se%s+the%s+code%s+([%w%p]+)")
+    local raw = tostring(text or "")
+    -- Accept punctuation, extra words and a code embedded in a sentence:
+    -- "the code is FREE67", "code is: FREE67!", "use code FREE67 now".
+    local patterns = {
+        "[Tt]he%s+code%s*[:%-]?%s*is%s*[:%-]?%s*",
+        "[Cc]ode%s*[:%-]?%s*is%s*[:%-]?%s*",
+        "[Uu]se%s+the%s+code%s*[:%-=]?%s*",
+        "[Uu]se%s+code%s*[:%-=]?%s*",
+        "[Rr]eward%s+code%s*[:%-=]?%s*",
+        "[Cc]ode%s*[:=]%s*",
+    }
+    local token
+    for _, pattern in ipairs(patterns) do
+        token = raw:match(pattern .. "[\"']*([%w][%w_%-]*)")
+        if token then break end
+    end
     if not token then return nil end
     token = token:gsub("^[^%w]+", ""):gsub("[^%w]+$", "")
     if token == "" then return nil end
@@ -7395,6 +7442,10 @@ local function safeNew(cls, props)
     for k, v in pairs(props or {}) do
         pcall(function() inst[k] = v end)
     end
+    if cls == "ScrollingFrame" then
+        pcall(function() inst.Active = true end)
+        pcall(function() inst.ScrollingEnabled = true end)
+    end
     return inst
 end
 
@@ -7638,6 +7689,8 @@ do
             Parent = ogPage,
             Position = UDim2.new(0, 0, 0, 32),
             Size = UDim2.new(1, 0, 1, -64),
+            Active = true,
+            ScrollingEnabled = true,
             BackgroundTransparency = 1,
             ScrollBarThickness = 3,
             ScrollBarImageColor3 = C.Faint,
@@ -8103,6 +8156,8 @@ do
         local scroll = safeNew("ScrollingFrame", {
             Parent = fxPage,
             Size = UDim2.new(1, 0, 1, 0),
+            Active = true,
+            ScrollingEnabled = true,
             BackgroundTransparency = 1,
             ScrollBarThickness = 3,
             ScrollBarImageColor3 = C.Faint,
@@ -8762,7 +8817,9 @@ do
 
         local function recolor(root)
             for _, obj in ipairs(root:GetDescendants()) do
-                if obj:IsA("Frame") then
+                if snowLayer and (obj == snowLayer or obj:IsDescendantOf(snowLayer)) then
+                    if obj:IsA("Frame") and obj ~= snowLayer then obj.BackgroundColor3 = C.Snow end
+                elseif obj:IsA("Frame") then
                     local n = string.lower(obj.Name)
                     if n:find("rail") or n:find("sidebar") then
                         obj.BackgroundColor3 = C.Pine

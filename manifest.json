@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "name": "code-redeemer",
+  "game": "Steal a Brainrot",
+  "script": "code/Azertoxsniper.lua",
+  "databaseManifest": "data/manifest.json",
+  "databaseRecords": 100537,
+  "databaseShards": 21,
+  "apiKeysIncluded": false
+}
