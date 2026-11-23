@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "game": "Steal a Brainrot",
+  "totalRecords": 100000,
+  "shardSize": 5000,
+  "shards": [
+    {
+      "file": "shard-001.json",
+      "count": 5000,
+      "bytes": 464858
+    },
+    {
+      "file": "shard-002.json",
+      "count": 5000,
+      "bytes": 447732
+    },
+    {
+      "file": "shard-003.json",
+      "count": 5000,
+      "bytes": 504352
+    },
+    {
+      "file": "shard-004.json",
+      "count": 5000,
+      "bytes": 410336
+    },
+    {
+      "file": "shard-005.json",
+      "count": 5000,
+      "bytes": 456517
+    },
+    {
+      "file": "shard-006.json",
+      "count": 5000,
+      "bytes": 462704
+    },
+    {
+      "file": "shard-007.json",
+      "count": 5000,
+      "bytes": 449091
+    },
+    {
+      "file": "shard-008.json",
+      "count": 5000,
+      "bytes": 460333
+    },
+    {
+      "file": "shard-009.json",
+      "count": 5000,
+      "bytes": 483799
+    },
+    {
+      "file": "shard-010.json",
+      "count": 5000,
+      "bytes": 492252
+    },
+    {
+      "file": "shard-011.json",
+      "count": 5000,
+      "bytes": 440426
+    },
+    {
+      "file": "shard-012.json",
+      "count": 5000,
+      "bytes": 430115
+    },
+    {
+      "file": "shard-013.json",
+      "count": 5000,
+      "bytes": 479098
+    },
+    {
+      "file": "shard-014.json",
+      "count": 5000,
+      "bytes": 398034
+    },
+    {
+      "file": "shard-015.json",
+      "count": 5000,
+      "bytes": 426309
+    },
+    {
+      "file": "shard-016.json",
+      "count": 5000,
+      "bytes": 446250
+    },
+    {
+      "file": "shard-017.json",
+      "count": 5000,
+      "bytes": 418625
+    },
+    {
+      "file": "shard-018.json",
+      "count": 5000,
+      "bytes": 460036
+    },
+    {
+      "file": "shard-019.json",
+      "count": 5000,
+      "bytes": 383557
+    },
+    {
+      "file": "shard-020.json",
+      "count": 5000,
+      "bytes": 546420
+    }
+  ],
+  "generatedAt": "2026-11-23T17:09:38.7861156Z"
+}
